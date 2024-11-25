@@ -10,6 +10,7 @@ import CreateRestaurantForm from '../Admin/AddRestaurants/CreateRestaurantForm'
 import Restaurant from '../customers/pages/Restaurant/Restaurant'
 import PasswordChangeSuccess from '../customers/pages/Auth/PasswordChangeSuccess'
 import NotFound from '../customers/pages/NotFound/NotFound'
+import Footer from '../customers/components/Footer/Footer'
 
 
 
@@ -31,6 +32,9 @@ const CustomerRoutes = () => {
             <Route exact path='/password_change_success' element={<PasswordChangeSuccess/>}/>
             <Route exact path='/*' element={<NotFound/>}/>
         </Routes>
+        <footer>
+          <Footer/>
+        </footer>
     </div>
   )
 }
