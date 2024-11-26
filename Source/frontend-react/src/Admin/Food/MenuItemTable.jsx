@@ -18,7 +18,6 @@ import {
 
 import React, { useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-
 import { useDispatch, useSelector } from "react-redux";
 import {
   deleteFoodAction,
@@ -27,48 +26,38 @@ import {
 } from "../../State/Customers/Menu/menu.action";
 import { updateStockOfIngredient } from "../../State/Admin/Ingredients/Action";
 import HorizontalRuleIcon from "@mui/icons-material/HorizontalRule";
-import { categorizedIngredients } from "../../customers/util/CategorizeIngredients";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Create, Remove } from "@mui/icons-material";
+import { Create } from "@mui/icons-material";
 
 const MenuItemTable = ({ isDashboard, name }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { menu, ingredients, restaurant,auth } = useSelector((store) => store);
+  const { menu, ingredients, restaurant, auth } = useSelector((store) => store);
   const { id } = useParams();
-  const jwt=localStorage.getItem("jwt");
+  const jwt = localStorage.getItem("jwt");
 
   useEffect(() => {
-    
-      if(restaurant.usersRestaurant){
-       dispatch( getMenuItemsByRestaurantId({
-        restaurantId: restaurant.usersRestaurant?.id,
-        jwt: localStorage.getItem("jwt"),
-        seasonal: false,
-        vegetarian: false,
-        nonveg: false,
-        foodCategory: "",
-      }));
-      }
-      
-    
-  }, [ingredients.update,restaurant.usersRestaurant]);
+    if (restaurant.usersRestaurant) {
+      dispatch(
+        getMenuItemsByRestaurantId({
+          restaurantId: restaurant.usersRestaurant?.id,
+          jwt: localStorage.getItem("jwt"),
+          seasonal: false,
+          vegetarian: false,
+          nonveg: false,
+          foodCategory: "",
+        })
+      );
+    }
+  }, [ingredients.update, restaurant.usersRestaurant]);
 
-  // console.log(
-  //   "-------- ",
-  //   menu.menuItems[1].ingredients,
-  //   categorizedIngredients(menu.menuItems[1].ingredients)
-  // );
-
-  
-
-  const handleFoodAvialability = (foodId) => {
-    dispatch(updateMenuItemsAvailability({foodId,jwt:auth.jwt || jwt}));
+  const handleFoodAvailability = (foodId) => {
+    dispatch(updateMenuItemsAvailability({ foodId, jwt: auth.jwt || jwt }));
   };
 
   const handleDeleteFood = (foodId) => {
-    dispatch(deleteFoodAction({foodId,jwt:auth.jwt || jwt}));
+    dispatch(deleteFoodAction({ foodId, jwt: auth.jwt || jwt }));
   };
 
   return (
@@ -93,16 +82,8 @@ const MenuItemTable = ({ isDashboard, name }) => {
               <TableRow>
                 <TableCell>Image</TableCell>
                 <TableCell>Title</TableCell>
-                {/* <TableCell sx={{ textAlign: "center" }}>Category</TableCell> */}
-                {!isDashboard && (
-                  <TableCell sx={{ textAlign: "" }}>
-                    Ingredients
-                  </TableCell>
-                )}
                 <TableCell sx={{ textAlign: "center" }}>Price</TableCell>
-                {/* <TableCell sx={{ textAlign: "center" }}>Quantity</TableCell> */}
-
-                <TableCell sx={{ textAlign: "center" }}>Availabilty</TableCell>
+                <TableCell sx={{ textAlign: "center" }}>Availability</TableCell>
                 {!isDashboard && (
                   <TableCell sx={{ textAlign: "center" }}>Delete</TableCell>
                 )}
@@ -138,48 +119,13 @@ const MenuItemTable = ({ isDashboard, name }) => {
                     </Box>
                   </TableCell>
 
-                  {!isDashboard && (
-                    <TableCell>
-                      {Object.keys(
-                        categorizedIngredients(item?.ingredients)
-                      )?.map((category) => (
-                        <div key={category}>
-                          <p className="font-semibold">{category}</p>
-                          <div className="pl-5">
-                            {categorizedIngredients(item?.ingredients)[
-                              category
-                            ].map((ingredient, index) => (
-                              <div
-                                key={ingredient.id}
-                                className="flex gap-1 items-center"
-                              >
-                                <div>
-                                  <HorizontalRuleIcon
-                                    sx={{ fontSize: "1rem" }}
-                                  />
-                                </div>
-                                <div
-                                  key={ingredient.id}
-                                  className="flex gap-4 items-center"
-                                >
-                                  <p>{ingredient.name}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </TableCell>
-                  )}
-                  <TableCell sx={{ textAlign: "center" }}>
-                    ₹{item.price}
-                  </TableCell>
+                  <TableCell sx={{ textAlign: "center" }}>₹{item.price}</TableCell>
 
                   <TableCell sx={{ textAlign: "center" }}>
                     <Button
                       color={item.available ? "success" : "error"}
                       variant="text"
-                      onClick={() => handleFoodAvialability(item.id)}
+                      onClick={() => handleFoodAvailability(item.id)}
                     >
                       {item.available ? "in stock" : "out of stock"}
                     </Button>

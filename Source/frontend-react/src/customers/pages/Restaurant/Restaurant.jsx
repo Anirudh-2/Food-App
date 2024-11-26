@@ -139,7 +139,7 @@ const Restaurant = () => {
             
             <div className="">
               <Typography sx={{ paddingBottom: "1rem" }} variant="h5">
-                Food Type
+                Veg or Non-veg
               </Typography>
               <FormControl className="py-10 space-y-5" component="fieldset">
                 <RadioGroup

@@ -1,10 +1,10 @@
-import React, { Component } from "react";
+import React from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import CarouselItem from "./CarouselItem";
 import { topMeels } from "../../../Data/topMeels";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+import { useNavigate } from "react-router-dom";
 
 const responsive = [
   {
@@ -34,11 +34,13 @@ const responsive = [
 ];
 
 export default function MultipleItemsCarousel() {
-  const navigate = useNavigate(); // Initialize useNavigate hook for navigation
+  const navigate = useNavigate();
 
   // Handle the click event to navigate to the restaurant page
   const handleItemClick = (restaurantId) => {
-    navigate(`/restaurant/${restaurantId}`); // Navigate to the restaurant page with restaurantId
+    if (restaurantId) {
+      navigate(`/restaurant/${restaurantId}`);
+    }
   };
 
   const settings = {

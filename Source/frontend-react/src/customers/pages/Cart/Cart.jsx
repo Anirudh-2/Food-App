@@ -1,19 +1,30 @@
-import { Button, Card, Divider, IconButton, Snackbar } from "@mui/material";
+import {
+  Button,
+  Card,
+  Divider,
+  IconButton,
+  Snackbar,
+  Modal,
+  Box,
+  Grid,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+} from "@mui/material";
 import React, { Fragment, useEffect, useState } from "react";
 import AddressCard from "../../components/Address/AddressCard";
 import CartItemCard from "../../components/CartItem/CartItemCard";
 import { useDispatch, useSelector } from "react-redux";
-
 import AddLocationAltIcon from "@mui/icons-material/AddLocationAlt";
-import { Box, Modal, Grid, TextField } from "@mui/material";
+import RemoveShoppingCartIcon from "@mui/icons-material/RemoveShoppingCart";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { createOrder } from "../../../State/Customers/Orders/Action";
 import { findCart } from "../../../State/Customers/Cart/cart.action";
 import { isValid } from "../../util/ValidToOrder";
 import { cartTotal } from "./totalPay";
-import RemoveShoppingCartIcon from "@mui/icons-material/RemoveShoppingCart";
 
+// Initial values for the new address form
 const initialValues = {
   streetAddress: "",
   state: "",
@@ -21,6 +32,7 @@ const initialValues = {
   city: "",
 };
 
+// Validation schema for the new address form
 const validationSchema = Yup.object().shape({
   streetAddress: Yup.string().required("Street Address is required"),
   state: Yup.string().required("State is required"),
@@ -30,6 +42,7 @@ const validationSchema = Yup.object().shape({
   city: Yup.string().required("City is required"),
 });
 
+// Modal styles for address form
 const style = {
   position: "absolute",
   top: "50%",
@@ -43,11 +56,16 @@ const style = {
 };
 
 const Cart = () => {
-  const [openSnackbar, setOpenSnakbar] = useState();
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [paymentOption, setPaymentOption] = useState({
+    onlinePayment: false,
+    cashOnDelivery: false,
+  }); // Track payment options
   const dispatch = useDispatch();
   const { cart, auth } = useSelector((store) => store);
   const [openAddressModal, setOpenAddressModal] = useState(false);
-  console.log("cart ", cart);
+  const [selectedAddress, setSelectedAddress] = useState(null); // Track selected address
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false); // Control payment option visibility
 
   const handleCloseAddressModal = () => {
     setOpenAddressModal(false);
@@ -57,7 +75,12 @@ const Cart = () => {
 
   useEffect(() => {
     dispatch(findCart(localStorage.getItem("jwt")));
-  }, []);
+  }, [dispatch]);
+
+  const handleSelectAddress = (address) => {
+    setSelectedAddress(address); // Set the selected address
+    setShowPaymentOptions(true); // Show payment options after address selection
+  };
 
   const handleSubmit = (values, { resetForm }) => {
     const data = {
@@ -74,33 +97,59 @@ const Cart = () => {
         },
       },
     };
-    console.log("data",data)
+
     if (isValid(cart.cartItems)) {
-      dispatch(createOrder(data));
-    } else setOpenSnakbar(true);
+      dispatch(createOrder(data)); // Create the order
+      setOpenSnackbar(true); // Show success Snackbar
+    } else {
+      setOpenSnackbar(true); // Show Snackbar for invalid items
+    }
   };
 
-  const createOrderUsingSelectedAddress = (deliveryAddress) => {
+  const createOrderUsingSelectedAddress = () => {
     const data = {
       token: localStorage.getItem("jwt"),
       order: {
         restaurantId: cart.cartItems[0].food.restaurant.id,
         deliveryAddress: {
-          fullName: "ashok",
-          streetAddress: "gujrat",
-          city: "gujrat",
-          state: "gujrat",
-          postalCode: "599000",
+          fullName: auth.user?.fullName,
+          streetAddress: selectedAddress.streetAddress,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          postalCode: selectedAddress.pincode,
           country: "India",
         },
       },
     };
     if (isValid(cart.cartItems)) {
-      dispatch(createOrder(data));
-    } else setOpenSnakbar(true);
+      dispatch(createOrder(data)); // Create the order
+      setOpenSnackbar(true); // Show success Snackbar
+    } else {
+      setOpenSnackbar(true); // Show Snackbar for invalid items
+    }
   };
 
-  const handleCloseSankBar = () => setOpenSnakbar(false);
+  const handlePaymentOptionChange = (event) => {
+    setPaymentOption({
+      ...paymentOption,
+      [event.target.name]: event.target.checked,
+    });
+  };
+
+  const handleOrderPlacement = () => {
+    if (paymentOption.onlinePayment) {
+      // Redirect to online payment gateway (Add your payment gateway logic here)
+      window.location.href = "/payment-gateway"; // Placeholder URL for the payment gateway
+    } else if (paymentOption.cashOnDelivery) {
+      // Proceed with order placement for Cash on Delivery
+      createOrderUsingSelectedAddress();
+    } else {
+      // No payment option selected, show an error or prompt the user to select one
+      alert("Please select a payment method.");
+    }
+  };
+
+  const handleCloseSnackbar = () => setOpenSnackbar(false);
 
   return (
     <Fragment>
@@ -108,7 +157,7 @@ const Cart = () => {
         <main className="lg:flex justify-between">
           <section className="lg:w-[30%] space-y-6 lg:min-h-screen pt-10">
             {cart.cartItems.map((item, i) => (
-              <CartItemCard item={item} />
+              <CartItemCard key={i} item={item} />
             ))}
 
             <Divider />
@@ -120,92 +169,57 @@ const Cart = () => {
                   <p>₹{cartTotal(cart.cartItems)}</p>
                 </div>
                 <div className="flex justify-between text-gray-400">
-                <p>Deliver Fee</p>
-                <p>₹21</p>
-              </div>
+                  <p>Deliver Fee</p>
+                  <p>₹21</p>
+                </div>
                 <div className="flex justify-between text-gray-400">
-                <p>Plateform Fee</p>
-                <p>₹5</p>
-              </div>
+                  <p>Platform Fee</p>
+                  <p>₹5</p>
+                </div>
                 <div className="flex justify-between text-gray-400">
-                <p>GST and Restaurant Charges</p>
-                <p>₹33</p>
-              </div>
+                  <p>GST and Restaurant Charges</p>
+                  <p>₹33</p>
+                </div>
                 <Divider />
                 <div className="flex justify-between text-gray-400">
                   <p>Total Pay</p>
-                  <p>₹{cartTotal(cart.cartItems)+33}</p>
+                  <p>₹{cartTotal(cart.cartItems) + 33}</p>
                 </div>
               </div>
             </div>
           </section>
           <Divider orientation="vertical" flexItem />
           <section className="lg:w-[70%] flex justify-center px-5 pb-10 lg:pb-0">
-            <div className="">
-              <h1 className="text-center font-semibold text-2xl py-10">
-              Choose Delivery Address
-            </h1>
-            <div className="flex gap-5 flex-wrap justify-center">
-              {auth.user?.addresses.map((item, index) => (
-                <AddressCard
-                  handleSelectAddress={createOrderUsingSelectedAddress}
-                  item={item}
-                  showButton={true}
-                />
-              ))}
+            <div className="text-center">
+              <h1 className="font-semibold text-2xl py-10">Choose Delivery Address</h1>
+              <div className="flex gap-5 flex-wrap justify-center">
+                {auth.user?.addresses.map((item, index) => (
+                  <AddressCard
+                    key={index}
+                    handleSelectAddress={handleSelectAddress}
+                    item={item}
+                    showButton={true}
+                  />
+                ))}
 
-              <Card className="flex flex-col justify-center items-center p-5  w-64 ">
-                <div className="flex space-x-5">
-                  <AddLocationAltIcon />
-                  <div className="space-y-5">
-                    <p>Add New Address</p>
-                    <Button
-                      onClick={handleOpenAddressModal}
-                      sx={{ padding: ".75rem" }}
-                      fullWidth
-                      variant="contained"
-                    >
-                      Add
-                    </Button>
+                <Card className="flex flex-col justify-center items-center p-5 w-64">
+                  <div className="flex space-x-5">
+                    <AddLocationAltIcon />
+                    <div className="space-y-5">
+                      <p>Add New Address</p>
+                      <Button
+                        onClick={handleOpenAddressModal}
+                        sx={{ padding: ".75rem" }}
+                        fullWidth
+                        variant="contained"
+                      >
+                        Add
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            </div>
-            </div>
-            {/* <div className="flex justify-center items-center h-[90vh]">
-              <Card className="billDetails px-5 text-sm w-[20vw] p-10 space-y-5">
-                <p className=" text-xl font-bold text-center">Bill Details</p>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-gray-400">
-                    <p>Item Total</p>
-                    <p>₹{cartTotal(cart.cartItems)}</p>
-                  </div>
-                  <div className="flex justify-between text-gray-400">
-                <p>Deliver Fee</p>
-                <p>₹21</p>
-              </div> 
-                  <div className="flex justify-between text-gray-400">
-                <p>Plateform Fee</p>
-                <p>₹5</p>
-              </div> 
-                  <div className="flex justify-between text-gray-400">
-                <p>GST and Restaurant Charges</p>
-                <p>₹33</p>
+                </Card>
               </div>
-                  <Divider />
-                  <div className="flex justify-between text-gray-400">
-                    <p>Total Pay</p>
-                    <p>₹{cartTotal(cart.cartItems)}</p>
-                  </div>
-                </div>
-                <Button
-                  onClick={createOrderUsingSelectedAddress}
-                  variant="contained"
-                >
-                  Checkout
-                </Button>
-              </Card>
-            </div> */}
+            </div>
           </section>
         </main>
       ) : (
@@ -216,6 +230,8 @@ const Cart = () => {
           </div>
         </div>
       )}
+
+      {/* Address Modal */}
       <Modal open={openAddressModal} onClose={handleCloseAddressModal}>
         <Box sx={style}>
           <Formik
@@ -232,12 +248,8 @@ const Cart = () => {
                     label="Street Address"
                     fullWidth
                     variant="outlined"
-                    error={!ErrorMessage("streetAddress")}
-                    helperText={
-                      <ErrorMessage name="streetAddress">
-                        {(msg) => <span className="text-red-600">{msg}</span>}
-                      </ErrorMessage>
-                    }
+                    error={!!ErrorMessage("streetAddress")}
+                    helperText={<ErrorMessage name="streetAddress" />}
                   />
                 </Grid>
                 <Grid item xs={6}>
@@ -247,12 +259,8 @@ const Cart = () => {
                     label="State"
                     fullWidth
                     variant="outlined"
-                    error={!ErrorMessage("state")}
-                    helperText={
-                      <ErrorMessage name="state">
-                        {(msg) => <span className="text-red-600">{msg}</span>}
-                      </ErrorMessage>
-                    }
+                    error={!!ErrorMessage("state")}
+                    helperText={<ErrorMessage name="state" />}
                   />
                 </Grid>
                 <Grid item xs={6}>
@@ -262,12 +270,8 @@ const Cart = () => {
                     label="Pincode"
                     fullWidth
                     variant="outlined"
-                    error={!ErrorMessage("pincode")}
-                    helperText={
-                      <ErrorMessage name="pincode">
-                        {(msg) => <span className="text-red-600">{msg}</span>}
-                      </ErrorMessage>
-                    }
+                    error={!!ErrorMessage("pincode")}
+                    helperText={<ErrorMessage name="pincode" />}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -277,12 +281,8 @@ const Cart = () => {
                     label="City"
                     fullWidth
                     variant="outlined"
-                    error={!ErrorMessage("city")}
-                    helperText={
-                      <ErrorMessage name="city">
-                        {(msg) => <span className="text-red-600">{msg}</span>}
-                      </ErrorMessage>
-                    }
+                    error={!!ErrorMessage("city")}
+                    helperText={<ErrorMessage name="city" />}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -295,12 +295,45 @@ const Cart = () => {
           </Formik>
         </Box>
       </Modal>
+
+      {/* Payment Options Modal */}
+      {showPaymentOptions && (
+        <Modal open={showPaymentOptions} onClose={() => setShowPaymentOptions(false)}>
+          <Box sx={style}>
+            <h2>Choose Payment Option</h2>
+            {/* <FormControlLabel
+              control={
+                <Checkbox
+                  checked={paymentOption.onlinePayment}
+                  onChange={handlePaymentOptionChange}
+                  name="onlinePayment"
+                />
+              }
+              label="Online Payment"
+            /> */}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={paymentOption.cashOnDelivery}
+                  onChange={handlePaymentOptionChange}
+                  name="cashOnDelivery"
+                />
+              }
+              label="Cash On Delivery"
+            />
+            <Button onClick={handleOrderPlacement} fullWidth variant="contained">
+              Place Order
+            </Button>
+          </Box>
+        </Modal>
+      )}
+
+      {/* Snackbar for order status */}
       <Snackbar
-        severity="success"
         open={openSnackbar}
         autoHideDuration={6000}
-        onClose={handleCloseSankBar}
-        message="Please Add Items Only From One Restaurants At time"
+        onClose={handleCloseSnackbar}
+        message="Order Placed Successfully"
       />
     </Fragment>
   );

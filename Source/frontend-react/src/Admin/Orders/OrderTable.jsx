@@ -27,13 +27,6 @@ import {
   fetchRestaurantsOrder,
   updateOrderStatus,
 } from "../../State/Admin/Order/restaurants.order.action";
-// import {
-//   confirmOrder,
-//   deleteOrder,
-//   deliveredOrder,
-//   getOrders,
-//   shipOrder,
-// } from "../../state/Admin/Order/Action";
 
 const orderStatus = [
   { label: "Pending", value: "PENDING" },
@@ -65,10 +58,8 @@ const OrdersTable = ({ isDashboard, name }) => {
 
   const handleUpdateOrder = (orderId, orderStatus, index) => {
     handleUpdateStatusMenuClose(index);
-    dispatch(updateOrderStatus({ orderId, orderStatus,jwt }));
+    dispatch(updateOrderStatus({ orderId, orderStatus, jwt }));
   };
-
-  // console.log("restaurants orders store ", restaurantsOrder)
 
   return (
     <Box>
@@ -85,21 +76,16 @@ const OrdersTable = ({ isDashboard, name }) => {
           <Table sx={{}} aria-label="table in dashboard">
             <TableHead>
               <TableRow>
-              <TableCell>Id</TableCell>
+                <TableCell>Id</TableCell>
                 <TableCell>Image</TableCell>
-                {/* {!isDashboard && <TableCell>Title</TableCell>} */}
                 <TableCell>Customer</TableCell>
                 <TableCell>Price</TableCell>
-             
                 <TableCell>Name</TableCell>
-                {!isDashboard && <TableCell>Ingredients</TableCell>}
-                {!isDashboard &&<TableCell>Status</TableCell>}
+                <TableCell>Date</TableCell> {/* Added Date column */}
+                {!isDashboard && <TableCell>Status</TableCell>}
                 {!isDashboard && (
                   <TableCell sx={{ textAlign: "center" }}>Update</TableCell>
                 )}
-                {/* {!isDashboard && (
-                  <TableCell sx={{ textAlign: "center" }}>Delete</TableCell>
-                )} */}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -126,53 +112,45 @@ const OrdersTable = ({ isDashboard, name }) => {
                       </AvatarGroup>{" "}
                     </TableCell>
 
-                    <TableCell sx={{}}>
-                      {item?.customer.email}
-                    </TableCell>
+                    <TableCell sx={{}}>{item?.customer.email}</TableCell>
 
                     <TableCell>₹{item?.totalAmount}</TableCell>
-                    
+
                     <TableCell className="">
                       {item.items.map((orderItem) => (
-                        <p>
-                          {orderItem.food?.name}
-                        </p>
+                        <p key={orderItem.food.id}>{orderItem.food?.name}</p>
                       ))}
                     </TableCell>
-                  {!isDashboard &&  <TableCell className="space-y-2">
-                      {item.items.map((orderItem) =>
-                      <div className="flex gap-1 flex-wrap">
-                       { orderItem.ingredients?.map((ingre) => (
-                          <Chip label={ingre} />
-                        ))}
-                      </div>
-                        
-                      )}
-                    </TableCell>}
-                    {!isDashboard &&<TableCell className="text-white">
-                      <Chip
-                        sx={{
-                          color: "white !important",
-                          fontWeight: "bold",
-                          textAlign: "center",
-                        }}
-                        label={item?.orderStatus}
-                        size="small"
-                        color={
-                          item.orderStatus === "PENDING"
-                            ? "info"
-                            : item?.orderStatus === "DELIVERED"
-                            ? "success"
-                            : "secondary"
-                        }
-                        className="text-white"
-                      />
-                    </TableCell>}
+
+                    {/* Date Column */}
+                    <TableCell>
+                      {new Date(item?.createdAt).toLocaleDateString()} {/* Assuming createdAt exists */}
+                    </TableCell>
+
                     {!isDashboard && (
-                      <TableCell
-                        sx={{ textAlign: "center" }}
-                        className="text-white"
-                      >
+                      <TableCell className="text-white">
+                        <Chip
+                          sx={{
+                            color: "white !important",
+                            fontWeight: "bold",
+                            textAlign: "center",
+                          }}
+                          label={item?.orderStatus}
+                          size="small"
+                          color={
+                            item.orderStatus === "PENDING"
+                              ? "info"
+                              : item?.orderStatus === "DELIVERED"
+                              ? "success"
+                              : "secondary"
+                          }
+                          className="text-white"
+                        />
+                      </TableCell>
+                    )}
+
+                    {!isDashboard && (
+                      <TableCell sx={{ textAlign: "center" }} className="text-white">
                         <div>
                           <Button
                             id={`basic-button-${item?.id}`}
@@ -196,6 +174,7 @@ const OrdersTable = ({ isDashboard, name }) => {
                           >
                             {orderStatus.map((s) => (
                               <MenuItem
+                                key={s.value}
                                 onClick={() =>
                                   handleUpdateOrder(item.id, s.value, index)
                                 }
@@ -207,26 +186,12 @@ const OrdersTable = ({ isDashboard, name }) => {
                         </div>
                       </TableCell>
                     )}
-                    {/* {!isDashboard && (
-                    <TableCell
-                      sx={{ textAlign: "center" }}
-                      className="text-white"
-                    >
-                      <Button
-                        onClick={() => handleDeleteOrder(item._id)}
-                        variant="text"
-                      >
-                        delete
-                      </Button>
-                    </TableCell>
-                  )} */}
                   </TableRow>
                 ))}
             </TableBody>
           </Table>
         </TableContainer>
       </Card>
-      
 
       <Backdrop
         sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
