@@ -6,12 +6,11 @@ const initialState = {
   cartItems: [],
   loading: false,
   error: null,
-  success: null,  // Success state for indicating successful actions like adding/removing items
+  success: null,
 };
 
 const cartReducer = (state = initialState, action) => {
   switch (action.type) {
-    // Request actions (Loading state)
     case actionTypes.FIND_CART_REQUEST:
     case actionTypes.GET_ALL_CART_ITEMS_REQUEST:
     case actionTypes.UPDATE_CARTITEM_REQUEST:
@@ -19,26 +18,28 @@ const cartReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: true,
-        error: null,  // Reset error state on new request
+        error: null,
       };
 
-    // Success actions (Cart operations)
+    // Success actions
     case actionTypes.FIND_CART_SUCCESS:
     case actionTypes.CLEARE_CART_SUCCESS:
       return {
         ...state,
         loading: false,
         cart: action.payload,
-        cartItems: action.payload.items || [],  // Ensure cart items are updated
-        success: "Cart loaded successfully",  // Add success message
+        cartItems: action.payload.items || [],
+        success: "Cart loaded successfully",
       };
+
     case actionTypes.ADD_ITEM_TO_CART_SUCCESS:
       return {
         ...state,
         loading: false,
-        cartItems: [action.payload, ...state.cartItems],  // Add new item at the beginning
-        success: "Item added to cart",  // Success message
+        cartItems: [action.payload, ...state.cartItems],
+        success: "Item added to cart",
       };
+
     case actionTypes.UPDATE_CARTITEM_SUCCESS:
       return {
         ...state,
@@ -46,37 +47,43 @@ const cartReducer = (state = initialState, action) => {
         cartItems: state.cartItems.map((item) =>
           item.id === action.payload.id ? action.payload : item
         ),
-        success: "Item updated in cart",  // Success message
+        success: "Item updated in cart",
       };
+
     case actionTypes.REMOVE_CARTITEM_SUCCESS:
       return {
         ...state,
         loading: false,
-        cartItems: state.cartItems.filter((item) =>
-          item.id !== action.payload
-        ),
-        success: "Item removed from cart",  // Success message
+        cartItems: state.cartItems.filter((item) => item.id !== action.payload),
+        success: "Item removed from cart",
       };
 
-    // Failure actions (Error state)
+    // Failure actions
     case actionTypes.FIND_CART_FAILURE:
     case actionTypes.UPDATE_CARTITEM_FAILURE:
     case actionTypes.REMOVE_CARTITEM_FAILURE:
       return {
         ...state,
         loading: false,
-        error: action.payload,  // Set the error state
-        success: null,  // Clear success on failure
+        error: action.payload,
+        success: null,
       };
 
-    // Handle logout (Clear cart and remove JWT from local storage)
-    case LOGOUT:
-      localStorage.removeItem("jwt");  // Clear JWT token on logout
+    case actionTypes.CLEARE_CART_FAILURE:
       return {
         ...state,
-        cartItems: [],  // Clear cart items
-        cart: null,  // Reset cart
-        success: "Logout successful",  // Success message
+        loading: false,
+        error: action.payload,
+      };
+
+    // Handle logout
+    case LOGOUT:
+      localStorage.removeItem("jwt");
+      return {
+        ...state,
+        cartItems: [],
+        cart: null,
+        success: null,
       };
 
     default:

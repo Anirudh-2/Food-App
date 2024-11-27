@@ -1,4 +1,5 @@
 import * as actionTypes from './ActionTypes';
+import { api } from "../../../config/api"; // Make sure to import api
 
 // Find Cart Actions
 export const findCartRequest = () => ({
@@ -21,14 +22,14 @@ export const getAllCartItemsRequest = () => ({
     type: actionTypes.GET_ALL_CART_ITEMS_REQUEST,
   });
   
-  export const getAllCartItemsSuccess = (cartItems) => ({
+export const getAllCartItemsSuccess = (cartItems) => ({
     type: actionTypes.GET_ALL_CART_ITEMS_SUCCESS,
     payload: cartItems,
-  });
+});
   
-  export const getAllCartItemsFailure = (error) => ({
+export const getAllCartItemsFailure = (error) => ({
     type: actionTypes.GET_ALL_CART_ITEMS_FAILURE,
     payload: error,
-  });
+});
 
-  
+

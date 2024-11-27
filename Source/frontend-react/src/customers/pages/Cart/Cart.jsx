@@ -23,6 +23,7 @@ import { createOrder } from "../../../State/Customers/Orders/Action";
 import { findCart } from "../../../State/Customers/Cart/cart.action";
 import { isValid } from "../../util/ValidToOrder";
 import { cartTotal } from "./totalPay";
+import { clearCartAction } from "../../../State/Customers/Cart/cart.action";
 
 // Initial values for the new address form
 const initialValues = {
@@ -121,14 +122,16 @@ const Cart = () => {
         },
       },
     };
+    
     if (isValid(cart.cartItems)) {
       dispatch(createOrder(data)); // Create the order
+      dispatch(clearCartAction(localStorage.getItem("jwt"))); // Clear the cart after placing the order
       setOpenSnackbar(true); // Show success Snackbar
     } else {
       setOpenSnackbar(true); // Show Snackbar for invalid items
     }
   };
-
+  
   const handlePaymentOptionChange = (event) => {
     // Ensure only one checkbox is checked at a time
     if (event.target.name === "onlinePayment") {
@@ -152,11 +155,13 @@ const Cart = () => {
     } else if (paymentOption.cashOnDelivery) {
       // Proceed with order placement for Cash on Delivery
       createOrderUsingSelectedAddress();
+      dispatch(clearCartAction(localStorage.getItem("jwt"))); // Clear the cart after placing the order
     } else {
       // No payment option selected, show an error or prompt the user to select one
       alert("Please select a payment method.");
     }
-  };
+};
+
 
   const handleCloseSnackbar = () => setOpenSnackbar(false);
 

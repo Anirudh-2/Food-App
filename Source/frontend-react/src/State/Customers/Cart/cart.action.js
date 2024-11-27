@@ -99,22 +99,23 @@ export const removeCartItem= ({cartItemId,jwt}) => {
   };
 };
 
-export const clearCartAction= (token) => {
+export const clearCartAction = (token) => {
   return async (dispatch) => {
-    dispatch({type:CLEARE_CART_REQUEST});
+    dispatch({ type: CLEARE_CART_REQUEST });
     try {
-      const {data} = await api.put(`/api/cart/clear`,{},{
+      const { data } = await api.put(`/api/cart/clear`, {}, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-     
-      dispatch({type:CLEARE_CART_SUCCESS, payload:data});
-      console.log("clear cart ",data)
+
+      dispatch({ type: CLEARE_CART_SUCCESS, payload: data });
+      console.log("clear cart ", data);
     } catch (error) {
-      console.log("catch error ",error)
-      dispatch({type:CLEARE_CART_FAILURE,payload:error.message});
+      console.log("catch error ", error);
+      dispatch({ type: CLEARE_CART_FAILURE, payload: error.message });
     }
   };
 };
+
 
