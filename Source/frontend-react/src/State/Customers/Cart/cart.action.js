@@ -99,13 +99,13 @@ export const removeCartItem= ({cartItemId,jwt}) => {
   };
 };
 
-export const clearCartAction= () => {
+export const clearCartAction= (token) => {
   return async (dispatch) => {
     dispatch({type:CLEARE_CART_REQUEST});
     try {
       const {data} = await api.put(`/api/cart/clear`,{},{
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("jwt")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
      

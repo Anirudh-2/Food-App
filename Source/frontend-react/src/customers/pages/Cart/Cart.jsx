@@ -130,16 +130,25 @@ const Cart = () => {
   };
 
   const handlePaymentOptionChange = (event) => {
-    setPaymentOption({
-      ...paymentOption,
-      [event.target.name]: event.target.checked,
-    });
+    // Ensure only one checkbox is checked at a time
+    if (event.target.name === "onlinePayment") {
+      setPaymentOption({
+        onlinePayment: true,
+        cashOnDelivery: false,
+      });
+    } else if (event.target.name === "cashOnDelivery") {
+      setPaymentOption({
+        onlinePayment: false,
+        cashOnDelivery: true,
+      });
+    }
   };
 
   const handleOrderPlacement = () => {
     if (paymentOption.onlinePayment) {
-      // Redirect to online payment gateway (Add your payment gateway logic here)
-      window.location.href = "/payment-gateway"; // Placeholder URL for the payment gateway
+      // Redirect to online payment gateway (Stripe checkout)
+      // The payment URL here is a placeholder, replace it with the actual Stripe checkout session URL
+      window.location.href = "https://checkout.stripe.com/c/pay/cs_test_a1EWZ9mSkkKOkCZ5HmO2Rm8AXWXKDJRGI5Cr6JOUkJMEwCK5XLa3cJrzjO#fidkdWxOYHwnPyd1blpxYHZxWjA0VEliTG1OVjRwYD1gXTA0U1J%2FY2xvPHJjXFNcSWJwX3BQNGw1SjZoSUtvMEx8QlUzQmthR2NuV0JwN0lBYUI2cG9RcFVHcnw2ZkpsYXxTaG5PNTZIMmpwNTVVN3J0ak9oYCcpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl";
     } else if (paymentOption.cashOnDelivery) {
       // Proceed with order placement for Cash on Delivery
       createOrderUsingSelectedAddress();
@@ -209,11 +218,10 @@ const Cart = () => {
                       <p>Add New Address</p>
                       <Button
                         onClick={handleOpenAddressModal}
-                        sx={{ padding: ".75rem" }}
-                        fullWidth
+                        sx={{ padding: "8px 20px" }}
                         variant="contained"
                       >
-                        Add
+                        Add Address
                       </Button>
                     </div>
                   </div>
@@ -301,7 +309,7 @@ const Cart = () => {
         <Modal open={showPaymentOptions} onClose={() => setShowPaymentOptions(false)}>
           <Box sx={style}>
             <h2>Choose Payment Option</h2>
-            {/* <FormControlLabel
+            <FormControlLabel
               control={
                 <Checkbox
                   checked={paymentOption.onlinePayment}
@@ -310,7 +318,7 @@ const Cart = () => {
                 />
               }
               label="Online Payment"
-            /> */}
+            />
             <FormControlLabel
               control={
                 <Checkbox
@@ -339,4 +347,4 @@ const Cart = () => {
   );
 };
 
-export default Cart;
+export default Cart;  
