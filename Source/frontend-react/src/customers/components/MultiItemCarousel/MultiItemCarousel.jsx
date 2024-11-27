@@ -59,9 +59,9 @@ export default function MultipleItemsCarousel() {
   return (
     <div>
       <Slider {...settings}>
-        {topMeels.map((item, index) => (
+        {topMeels.map((item) => (
           <CarouselItem
-            key={index}
+            key={item.id}
             image={item.image}
             title={item.title}
             restaurantId={item.id} // Pass the restaurantId to each CarouselItem

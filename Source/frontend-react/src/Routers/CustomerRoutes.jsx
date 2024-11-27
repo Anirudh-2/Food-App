@@ -24,6 +24,7 @@ const CustomerRoutes = () => {
             <Route exact path='/' element={<HomePage/>}/>
             <Route exact path='/account/:register' element={<HomePage/>}/>
             <Route exact path='/restaurant/:city/:title/:id' element={<Restaurant/>}/>
+            <Route exact path='/restaurant/:id' element={<Restaurant/>}/>
             <Route path='/cart' element={<Cart/>}/>
             <Route path='/payment/success/:id' element={<PaymentSuccess/>}/>
             <Route path='/my-profile/*' element={<Profile/>}/>
