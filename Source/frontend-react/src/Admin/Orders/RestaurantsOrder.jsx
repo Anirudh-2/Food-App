@@ -14,7 +14,7 @@ import { fetchRestaurantsOrder } from "../../State/Admin/Order/restaurants.order
 
 const orderStatus = [
   { label: "Pending", value: "PENDING" },
-  { label: "Completed", value: "COMPLETED" },
+  { label: "Ready For Pickup", value: "Ready For Pickup" },
   // { label: "Out For Delivery", value: "OUT_FOR_DELIVERY" },
   // { label: "Delivered", value: "DELIVERED" },
   { label: "All", value: "all" },

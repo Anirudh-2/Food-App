@@ -14,7 +14,6 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-
 import CreateIngredientCategoryForm from "./CreateIngredientCategory";
 import { useEffect, useState } from "react";
 import CreateIngredientForm from "./CreateIngredientForm";
@@ -23,9 +22,11 @@ import {
   getIngredientCategory,
   getIngredientsOfRestaurant,
   updateStockOfIngredient,
+  deleteIngredient,
 } from "../../State/Admin/Ingredients/Action";
 import { getRestaurantById } from "../../State/Customers/Restaurant/restaurant.action";
 
+// Modal style
 const style = {
   position: "absolute",
   top: "50%",
@@ -51,142 +52,189 @@ const Ingredients = () => {
   const handleOpenIngredient = () => setOpenIngredient(true);
   const handleCloseIngredient = () => setOpenIngredient(false);
 
+  const [activeTab, setActiveTab] = useState("ingredients");
+
   const handleUpdateStocke = (id) => {
     dispatch(updateStockOfIngredient({ id, jwt }));
   };
 
+  // Delete Ingredient
+  const handleDeleteIngredient = (id) => {
+    console.log("Deleting ingredient with ID:", id);
+    dispatch(deleteIngredient(id, jwt))
+      .then(() => {
+        dispatch(getIngredientsOfRestaurant({ id: restaurant.id, jwt }));
+      })
+      .catch((error) => {
+        alert("Failed to delete ingredient: " + error.message);
+        console.error("Failed to delete ingredient:", error);
+      });
+  };
+
   return (
-    <div className="px-2">
-      <Grid container spacing={1}>
-        <Grid  item xs={12} lg={8}>
-          <Card className="mt-1">
-            <CardHeader
-              title={"Ingredients"}
-              sx={{
-                pt: 2,
-                alignItems: "center",
-                "& .MuiCardHeader-action": { mt: 0.6 },
-              }}
-              action={
-                <IconButton onClick={handleOpenIngredient}>
-                  {" "}
-                  <Create />
-                </IconButton>
-              }
-            />
-            <TableContainer className="h-[88vh] overflow-y-scroll">
-              <Table sx={{}} aria-label="table in dashboard">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Id</TableCell>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        padding: "20px",
+        width: "100%",
+      }}
+    >
+      {/* Main container with centered content */}
+      <Box sx={{ width: "100%", maxWidth: "1200px" }}>
+        {/* Buttons to switch between Ingredients and Category */}
+        <Grid container spacing={1} sx={{ marginBottom: 2, justifyContent: "center" }}>
+          <Grid item>
+            <Button
+              variant={activeTab === "ingredients" ? "contained" : "outlined"}
+              color="primary"
+              onClick={() => setActiveTab("ingredients")}
+            >
+              Ingredients
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant={activeTab === "category" ? "contained" : "outlined"}
+              color="primary"
+              onClick={() => setActiveTab("category")}
+            >
+              Category
+            </Button>
+          </Grid>
+        </Grid>
 
-                    <TableCell>Name</TableCell>
-
-                    <TableCell>Category</TableCell>
-
-                    <TableCell>Availability</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {ingredients.ingredients.map((item, index) => (
-                    <TableRow
-                      className="cursor-pointer"
-                      hover
-                      key={item.id}
-                      sx={{
-                        "&:last-of-type td, &:last-of-type th": { border: 0 },
-                      }}
-                    >
-                      <TableCell>{item?.id}</TableCell>
-
-                      <TableCell className="">{item.name}</TableCell>
-                      <TableCell className="">{item.category.name}</TableCell>
-
-                      <TableCell className="">
-                        <Button
-                          onClick={() => handleUpdateStocke(item.id)}
-                          color={item.inStoke ? "success" : "primary"}
+        {/* Main content grid for table */}
+        <Grid container spacing={1} justifyContent="center">
+          {/* Centered Ingredients Table */}
+          <Grid item xs={12} lg={8}>
+            {activeTab === "ingredients" && (
+              <Card className="mt-1">
+                <CardHeader
+                  title={"Ingredients"}
+                  sx={{
+                    pt: 2,
+                    alignItems: "center",
+                    "& .MuiCardHeader-action": { mt: 0.6 },
+                  }}
+                  action={
+                    <IconButton onClick={handleOpenIngredient}>
+                      <Create />
+                    </IconButton>
+                  }
+                />
+                <TableContainer className="h-[88vh] overflow-y-scroll">
+                  <Table aria-label="table in dashboard">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Id</TableCell>
+                        <TableCell>Name</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Availability</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {ingredients.ingredients.map((item) => (
+                        <TableRow
+                          className="cursor-pointer"
+                          hover
+                          key={item.id}
+                          sx={{
+                            "&:last-of-type td, &:last-of-type th": { border: 0 },
+                          }}
                         >
-                          {item.inStoke ? "in stock" : "out of stock"}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
+                          <TableCell>{item?.id}</TableCell>
+                          <TableCell>{item.name}</TableCell>
+                          <TableCell>{item.category.name}</TableCell>
+                          <TableCell>
+                            <Button
+                              onClick={() => handleUpdateStocke(item.id)}
+                              color={item.inStoke ? "success" : "primary"}
+                            >
+                              {item.inStoke ? "in stock" : "out of stock"}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Card>
+            )}
+          </Grid>
+
+          {/* Centered Category Table */}
+          <Grid item xs={12} lg={8}>
+            {activeTab === "category" && (
+              <Card className="mt-1">
+                <CardHeader
+                  title={"Category"}
+                  sx={{
+                    pt: 2,
+                    alignItems: "center",
+                    "& .MuiCardHeader-action": { mt: 0.6 },
+                  }}
+                  action={
+                    <IconButton onClick={handleOpenIngredientCategory}>
+                      <Create />
+                    </IconButton>
+                  }
+                />
+                <TableContainer>
+                  <Table aria-label="table in dashboard">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Id</TableCell>
+                        <TableCell>Name</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {ingredients.category?.map((item) => (
+                        <TableRow
+                          className="cursor-pointer"
+                          hover
+                          key={item.id}
+                          sx={{
+                            "&:last-of-type td, &:last-of-type th": { border: 0 },
+                          }}
+                        >
+                          <TableCell>{item?.id}</TableCell>
+                          <TableCell>{item.name}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Card>
+            )}
+          </Grid>
         </Grid>
-        <Grid item xs={12} lg={4}>
-          <Card className="mt-1">
-            <CardHeader
-              title={"Category"}
-              sx={{
-                pt: 2,
-                alignItems: "center",
-                "& .MuiCardHeader-action": { mt: 0.6 },
-              }}
-              action={
-                <IconButton onClick={handleOpenIngredientCategory}>
-                  {" "}
-                  <Create />
-                </IconButton>
-              }
-            />
-            <TableContainer>
-              <Table sx={{}} aria-label="table in dashboard">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Id</TableCell>
 
-                    <TableCell>Name</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {ingredients.category?.map((item, index) => (
-                    <TableRow
-                      className="cursor-pointer"
-                      hover
-                      key={item.id}
-                      sx={{
-                        "&:last-of-type td, &:last-of-type th": { border: 0 },
-                      }}
-                    >
-                      <TableCell>{item?.id}</TableCell>
+        {/* Modals for creating Ingredient and Category */}
+        <Modal
+          open={openIngredient}
+          onClose={handleCloseIngredient}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={style}>
+            <CreateIngredientForm handleClose={handleCloseIngredient} />
+          </Box>
+        </Modal>
 
-                      <TableCell className="">{item.name}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-        </Grid>
-      </Grid>
-
-      <Modal
-        open={openIngredient}
-        onClose={handleCloseIngredient}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={style}>
-          <CreateIngredientForm handleClose={handleCloseIngredient} />
-        </Box>
-      </Modal>
-
-      <Modal
-        open={openIngredientCategory}
-        onClose={handleCloseIngredientCategory}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={style}>
-          <CreateIngredientCategoryForm
-            handleClose={handleCloseIngredientCategory}
-          />
-        </Box>
-      </Modal>
+        <Modal
+          open={openIngredientCategory}
+          onClose={handleCloseIngredientCategory}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={style}>
+            <CreateIngredientCategoryForm handleClose={handleCloseIngredientCategory} />
+          </Box>
+        </Modal>
+      </Box>
     </div>
   );
 };

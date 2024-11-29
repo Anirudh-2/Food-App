@@ -171,7 +171,7 @@ public class OrderServiceImplementation implements OrderService {
 		System.out.println("--------- "+orderStatus);
 		
 		if(orderStatus.equals("OUT_FOR_DELIVERY") || orderStatus.equals("DELIVERED") 
-				|| orderStatus.equals("COMPLETED") || orderStatus.equals("PENDING")) {
+				|| orderStatus.equals("Ready For Pickup") || orderStatus.equals("PENDING")) {
 			order.setOrderStatus(orderStatus);
 			Notification notification=notificationService.sendOrderStatusNotification(order);
 			return orderRepository.save(order);
