@@ -3,44 +3,53 @@ import { createOrderFailure, createOrderRequest, createOrderSuccess, getUsersOrd
 import { GET_USERS_NOTIFICATION_FAILURE, GET_USERS_NOTIFICATION_SUCCESS } from "./ActionTypes";
 
 
+// Updated createOrder action
 export const createOrder = (reqData) => {
   return async (dispatch) => {
     dispatch(createOrderRequest());
     try {
-      const {data} = await api.post('/api/order', reqData.order,{
+      const { data } = await api.post('/api/order', reqData.order, {
         headers: {
-            Authorization: `Bearer ${reqData.jwt}`,
-          },
+          Authorization: `Bearer ${reqData.jwt}`,
+        },
       });
-      if(data.payment_url){
-        window.location.href=data.payment_url;
+
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
       }
-      console.log("created order data",data)
+      console.log("Created order data:", data);
       dispatch(createOrderSuccess(data));
+
+      // Refetch the user's orders after successfully placing an order
+      dispatch(getUsersOrders(reqData.jwt));  // Refetch the orders list
     } catch (error) {
-      console.log("error ",error)
+      console.log("Error:", error);
       dispatch(createOrderFailure(error));
     }
   };
 };
 
 
+
+// getUsersOrders Action - to fetch orders
 export const getUsersOrders = (jwt) => {
   return async (dispatch) => {
     dispatch(getUsersOrdersRequest());
     try {
-      const {data} = await api.get(`/api/order/user`,{
+      const { data } = await api.get(`/api/order/user`, {
         headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
+          Authorization: `Bearer ${jwt}`,
+        },
       });
-      console.log("users order ",data)
+      console.log("Fetched user's orders:", data);
       dispatch(getUsersOrdersSuccess(data));
     } catch (error) {
+      console.log("Error fetching orders:", error);
       dispatch(getUsersOrdersFailure(error));
     }
   };
 };
+
 
 
 export const getUsersNotificationAction = () => {

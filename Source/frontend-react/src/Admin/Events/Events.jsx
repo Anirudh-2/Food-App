@@ -66,29 +66,28 @@ const Events = () => {
     dispatch(
       createEventAction({
         data: formValues,
-        restaurantId: restaurant.usersRestaurant?.id,
-        jwt
+        restaurantId: restaurant?.usersRestaurant?.id,
+        jwt,
       })
     );
-    console.log("Image URL:", formValues,restaurant.usersRetaurant?.id);
+    console.log("Image URL:", formValues, restaurant?.usersRestaurant?.id);
     // setFormValues(initialValues);
     // handleCloseModal();
   };
 
   useEffect(() => {
-    if (restaurant.usersRestaurant) {
+    if (restaurant?.usersRestaurant) {
       dispatch(
         getRestaurnatsEvents({
-          restaurantId: restaurant.usersRestaurant?.id,
+          restaurantId: restaurant?.usersRestaurant?.id,
           jwt: auth.jwt || jwt,
         })
       );
     }
-  }, [restaurant.usersRestaurant]);
+  }, [restaurant?.usersRestaurant]);
 
   return (
     <div>
-     
       <div className="p-5">
         <Button
           sx={{ padding: "1rem 2rem" }}
@@ -101,16 +100,10 @@ const Events = () => {
       </div>
 
       <div className="mt-5 px-5 flex flex-wrap gap-5">
-        {restaurant.restaurantsEvents.map((item) => (
-          <EventCard item={item} />
+        {restaurant?.restaurantsEvents?.map((item) => (
+          // Check if the item is not null or undefined before rendering
+          item && <EventCard key={item.id} item={item} />
         ))}
-        {/* <div>
-          <img
-          className="rounded-md w-[25rem] h-[25-rem] object-cover"
-            src="https://images.pexels.com/photos/5638732/pexels-photo-5638732.jpeg?auto=compress&cs=tinysrgb&w=600"
-            alt=""
-          />
-        </div> */}
       </div>
 
       <Modal
