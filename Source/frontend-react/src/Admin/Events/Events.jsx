@@ -1,24 +1,12 @@
-import {
-  Box,
-  Button,
-  Card,
-  Grid,
-  Modal,
-  TextField,
-  Typography,
-} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  createEventAction,
-  getRestaurnatsEvents,
-} from "../../State/Customers/Restaurant/restaurant.action";
-import { useParams } from "react-router-dom";
-import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
+import { createEventAction, getRestaurnatsEvents, deleteEventAction } from "../../State/Customers/Restaurant/restaurant.action";
+import { Box, Button, Grid, Modal, TextField, Snackbar, Alert } from "@mui/material";
 import EventCard from "./EventCard";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 const style = {
   position: "absolute",
@@ -40,39 +28,47 @@ const initialValues = {
   endsAt: null,
 };
 
+// Validation schema using Yup
+const validationSchema = Yup.object({
+  image: Yup.string().required("Image URL is required"),
+  location: Yup.string().required("Location is required"),
+  name: Yup.string().required("Event name is required"),
+  startedAt: Yup.date().required("Start date and time are required"),
+  endsAt: Yup.date()
+    .required("End date and time are required")
+    .min(Yup.ref("startedAt"), "End time must be after start time"),
+});
+
 const Events = () => {
-  const [image, setimage] = useState("");
+  const [openModal, setOpenModal] = useState(false);
+  const [openSnackBar, setOpenSnackBar] = useState(false);
+  const [snackBarMessage, setSnackBarMessage] = useState("");
   const dispatch = useDispatch();
   const { restaurant, auth } = useSelector((store) => store);
-  const [openModal, setOpenModal] = useState(false);
-  const handleCloseModal = () => setOpenModal(false);
-  const handleOpenModal = () => setOpenModal(true);
   const jwt = localStorage.getItem("jwt");
 
-  const [formValues, setFormValues] = useState(initialValues);
+  const formik = useFormik({
+    initialValues,
+    validationSchema,
+    onSubmit: (values) => {
+      dispatch(
+        createEventAction({
+          data: values,
+          restaurantId: restaurant?.usersRestaurant?.id,
+          jwt,
+        })
+      );
+      setSnackBarMessage("Event Created Successfully!");
+      setOpenSnackBar(true);
+      formik.resetForm();
+      setOpenModal(false);
+    },
+  });
 
-  const handleFormChange = (e) => {
-    setFormValues({ ...formValues, [e.target.name]: e.target.value });
-  };
-
-  const handleDateChange = (date, dateType) => {
-    const formattedDate = dayjs(date).format("MMMM DD, YYYY hh:mm A");
-    setFormValues({ ...formValues, [dateType]: formattedDate });
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    dispatch(
-      createEventAction({
-        data: formValues,
-        restaurantId: restaurant?.usersRestaurant?.id,
-        jwt,
-      })
-    );
-    console.log("Image URL:", formValues, restaurant?.usersRestaurant?.id);
-    // setFormValues(initialValues);
-    // handleCloseModal();
+  const handleDelete = (eventId) => {
+    dispatch(deleteEventAction(eventId));
+    setSnackBarMessage("Event Deleted Successfully!");
+    setOpenSnackBar(true);
   };
 
   useEffect(() => {
@@ -84,14 +80,14 @@ const Events = () => {
         })
       );
     }
-  }, [restaurant?.usersRestaurant]);
+  }, [restaurant?.usersRestaurant, dispatch]);
 
   return (
     <div>
       <div className="p-5">
         <Button
           sx={{ padding: "1rem 2rem" }}
-          onClick={handleOpenModal}
+          onClick={() => setOpenModal(true)}
           variant="contained"
           color="primary"
         >
@@ -101,19 +97,24 @@ const Events = () => {
 
       <div className="mt-5 px-5 flex flex-wrap gap-5">
         {restaurant?.restaurantsEvents?.map((item) => (
-          // Check if the item is not null or undefined before rendering
-          item && <EventCard key={item.id} item={item} />
+          item && (
+            <EventCard
+              key={item.id}
+              item={item}
+              onDelete={() => handleDelete(item.id)}  // Pass the delete handler to EventCard
+            />
+          )
         ))}
       </div>
 
       <Modal
         open={openModal}
-        onClose={handleCloseModal}
+        onClose={() => setOpenModal(false)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={formik.handleSubmit}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <TextField
@@ -121,8 +122,10 @@ const Events = () => {
                   label="Image URL"
                   variant="outlined"
                   fullWidth
-                  value={formValues.image}
-                  onChange={handleFormChange}
+                  value={formik.values.image}
+                  onChange={formik.handleChange}
+                  error={formik.touched.image && Boolean(formik.errors.image)}
+                  helperText={formik.touched.image && formik.errors.image}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -131,8 +134,10 @@ const Events = () => {
                   label="Location"
                   variant="outlined"
                   fullWidth
-                  value={formValues.location}
-                  onChange={handleFormChange}
+                  value={formik.values.location}
+                  onChange={formik.handleChange}
+                  error={formik.touched.location && Boolean(formik.errors.location)}
+                  helperText={formik.touched.location && formik.errors.location}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -141,8 +146,10 @@ const Events = () => {
                   label="Event Name"
                   variant="outlined"
                   fullWidth
-                  value={formValues.name}
-                  onChange={handleFormChange}
+                  value={formik.values.name}
+                  onChange={formik.handleChange}
+                  error={formik.touched.name && Boolean(formik.errors.name)}
+                  helperText={formik.touched.name && formik.errors.name}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -150,13 +157,13 @@ const Events = () => {
                   <DateTimePicker
                     renderInput={(props) => <TextField {...props} />}
                     label="Start Date and Time"
-                    value={formValues.startedAt}
-                    onChange={(newValue) =>
-                      handleDateChange(newValue, "startedAt")
-                    }
+                    value={formik.values.startedAt}
+                    onChange={(newValue) => formik.setFieldValue("startedAt", newValue)}
                     inputFormat="MM/dd/yyyy hh:mm a"
                     className="w-full"
                     sx={{ width: "100%" }}
+                    error={formik.touched.startedAt && Boolean(formik.errors.startedAt)}
+                    helperText={formik.touched.startedAt && formik.errors.startedAt}
                   />
                 </LocalizationProvider>
               </Grid>
@@ -165,13 +172,13 @@ const Events = () => {
                   <DateTimePicker
                     renderInput={(props) => <TextField {...props} />}
                     label="End Date and Time"
-                    value={formValues.endsAt}
-                    onChange={(newValue) =>
-                      handleDateChange(newValue, "endsAt")
-                    }
+                    value={formik.values.endsAt}
+                    onChange={(newValue) => formik.setFieldValue("endsAt", newValue)}
                     inputFormat="MM/dd/yyyy hh:mm a"
                     className="w-full"
                     sx={{ width: "100%" }}
+                    error={formik.touched.endsAt && Boolean(formik.errors.endsAt)}
+                    helperText={formik.touched.endsAt && formik.errors.endsAt}
                   />
                 </LocalizationProvider>
               </Grid>
@@ -184,6 +191,25 @@ const Events = () => {
           </form>
         </Box>
       </Modal>
+
+      {/* Snackbar */}
+      <Snackbar
+        sx={{
+          position: "fixed",
+          top: "10%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          backgroundColor: "blue",
+        }}
+        open={openSnackBar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackBar(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert severity="success" sx={{ width: "100%" }}>
+          {snackBarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

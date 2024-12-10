@@ -44,21 +44,46 @@ const OrdersTable = ({ isDashboard, name }) => {
   const [anchorElArray, setAnchorElArray] = useState([]);
   const { id } = useParams();
 
+  // Handle menu opening based on the row's status
   const handleUpdateStatusMenuClick = (event, index) => {
     const newAnchorElArray = [...anchorElArray];
     newAnchorElArray[index] = event.currentTarget;
     setAnchorElArray(newAnchorElArray);
   };
 
+  // Close the menu for a specific index
   const handleUpdateStatusMenuClose = (index) => {
     const newAnchorElArray = [...anchorElArray];
     newAnchorElArray[index] = null;
     setAnchorElArray(newAnchorElArray);
   };
 
+  // Update order status after selection from the menu
   const handleUpdateOrder = (orderId, orderStatus, index) => {
     handleUpdateStatusMenuClose(index);
     dispatch(updateOrderStatus({ orderId, orderStatus, jwt }));
+  };
+
+  // Function to get the valid status options based on current status
+  const getValidStatusOptions = (currentStatus) => {
+    switch (currentStatus) {
+      case "PENDING":
+        return [
+          { label: "Ready For Pickup", value: "Ready For Pickup" },
+          { label: "Out For Delivery", value: "OUT_FOR_DELIVERY" },
+        ];
+      case "Ready For Pickup":
+        return [
+          { label: "Out For Delivery", value: "OUT_FOR_DELIVERY" },
+          { label: "Delivered", value: "DELIVERED" },
+        ];
+      case "OUT_FOR_DELIVERY":
+        return [{ label: "Delivered", value: "DELIVERED" }];
+      case "DELIVERED":
+        return [];
+      default:
+        return [];
+    }
   };
 
   return (
@@ -81,7 +106,7 @@ const OrdersTable = ({ isDashboard, name }) => {
                 <TableCell>Customer</TableCell>
                 <TableCell>Price</TableCell>
                 <TableCell>Name</TableCell>
-                <TableCell>Date</TableCell> {/* Added Date column */}
+                <TableCell>Date</TableCell>
                 {!isDashboard && <TableCell>Status</TableCell>}
                 {!isDashboard && (
                   <TableCell sx={{ textAlign: "center" }}>Update</TableCell>
@@ -116,15 +141,14 @@ const OrdersTable = ({ isDashboard, name }) => {
 
                     <TableCell>₹{item?.totalAmount}</TableCell>
 
-                    <TableCell className="">
+                    <TableCell>
                       {item.items.map((orderItem) => (
                         <p key={orderItem.food.id}>{orderItem.food?.name}</p>
                       ))}
                     </TableCell>
 
-                    {/* Date Column */}
                     <TableCell>
-                      {new Date(item?.createdAt).toLocaleDateString()} {/* Assuming createdAt exists */}
+                      {new Date(item?.createdAt).toLocaleDateString()}
                     </TableCell>
 
                     {!isDashboard && (
@@ -172,7 +196,7 @@ const OrdersTable = ({ isDashboard, name }) => {
                               "aria-labelledby": `basic-button-${item.id}`,
                             }}
                           >
-                            {orderStatus.map((s) => (
+                            {getValidStatusOptions(item?.orderStatus).map((s) => (
                               <MenuItem
                                 key={s.value}
                                 onClick={() =>

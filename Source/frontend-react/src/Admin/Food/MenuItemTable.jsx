@@ -14,20 +14,24 @@ import {
   TableHead,
   TableRow,
   Typography,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
 } from "@mui/material";
-
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   deleteFoodAction,
   getMenuItemsByRestaurantId,
   updateMenuItemsAvailability,
+  updateFoodItem,
 } from "../../State/Customers/Menu/menu.action";
-import { updateStockOfIngredient } from "../../State/Admin/Ingredients/Action";
-import HorizontalRuleIcon from "@mui/icons-material/HorizontalRule";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { Create } from "@mui/icons-material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const MenuItemTable = ({ isDashboard, name }) => {
   const location = useLocation();
@@ -36,6 +40,12 @@ const MenuItemTable = ({ isDashboard, name }) => {
   const { menu, ingredients, restaurant, auth } = useSelector((store) => store);
   const { id } = useParams();
   const jwt = localStorage.getItem("jwt");
+
+  // State to control the Edit Dialog
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedPrice, setEditedPrice] = useState("");
 
   useEffect(() => {
     if (restaurant.usersRestaurant) {
@@ -58,6 +68,29 @@ const MenuItemTable = ({ isDashboard, name }) => {
 
   const handleDeleteFood = (foodId) => {
     dispatch(deleteFoodAction({ foodId, jwt: auth.jwt || jwt }));
+  };
+
+  const handleEditClick = (item) => {
+    setSelectedItem(item);
+    setEditedTitle(item.name);
+    setEditedPrice(item.price);
+    setOpenEditDialog(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (selectedItem) {
+      dispatch(updateFoodItem({ 
+        foodId: selectedItem.id, 
+        title: editedTitle, 
+        price: editedPrice, 
+        jwt: auth.jwt || jwt 
+      }));
+    }
+    setOpenEditDialog(false);
+  };
+
+  const handleCancelEdit = () => {
+    setOpenEditDialog(false);
   };
 
   return (
@@ -85,7 +118,10 @@ const MenuItemTable = ({ isDashboard, name }) => {
                 <TableCell sx={{ textAlign: "center" }}>Price</TableCell>
                 <TableCell sx={{ textAlign: "center" }}>Availability</TableCell>
                 {!isDashboard && (
-                  <TableCell sx={{ textAlign: "center" }}>Delete</TableCell>
+                  <>
+                    <TableCell sx={{ textAlign: "center" }}>Edit</TableCell>
+                    <TableCell sx={{ textAlign: "center" }}>Delete</TableCell>
+                  </>
                 )}
               </TableRow>
             </TableHead>
@@ -99,8 +135,7 @@ const MenuItemTable = ({ isDashboard, name }) => {
                   }}
                 >
                   <TableCell>
-                    {" "}
-                    <Avatar alt={item.name} src={item.images[0]} />{" "}
+                    <Avatar alt={item.name} src={item.images[0]} />
                   </TableCell>
 
                   <TableCell
@@ -132,11 +167,18 @@ const MenuItemTable = ({ isDashboard, name }) => {
                   </TableCell>
 
                   {!isDashboard && (
-                    <TableCell sx={{ textAlign: "center" }}>
-                      <IconButton onClick={() => handleDeleteFood(item.id)}>
-                        <DeleteIcon color="error" />
-                      </IconButton>
-                    </TableCell>
+                    <>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        <IconButton onClick={() => handleEditClick(item)}>
+                          <EditIcon color="primary" />
+                        </IconButton>
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        <IconButton onClick={() => handleDeleteFood(item.id)}>
+                          <DeleteIcon color="error" />
+                        </IconButton>
+                      </TableCell>
+                    </>
                   )}
                 </TableRow>
               ))}
@@ -144,6 +186,31 @@ const MenuItemTable = ({ isDashboard, name }) => {
           </Table>
         </TableContainer>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={openEditDialog} onClose={handleCancelEdit}>
+        <DialogTitle>Edit Menu Item</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Title"
+            fullWidth
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="Price"
+            fullWidth
+            type="number"
+            value={editedPrice}
+            onChange={(e) => setEditedPrice(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelEdit}>Cancel</Button>
+          <Button onClick={handleSaveEdit}>Save</Button>
+        </DialogActions>
+      </Dialog>
 
       <Backdrop
         sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}

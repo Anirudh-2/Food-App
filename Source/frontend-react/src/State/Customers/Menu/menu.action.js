@@ -20,6 +20,9 @@ import {
   UPDATE_MENU_ITEMS_AVAILABILITY_FAILURE,
   UPDATE_MENU_ITEMS_AVAILABILITY_REQUEST,
   UPDATE_MENU_ITEMS_AVAILABILITY_SUCCESS,
+  UPDATE_MENU_ITEM_REQUEST,
+  UPDATE_MENU_ITEM_SUCCESS,
+  UPDATE_MENU_ITEM_FAILURE
 } from "./ActionType";
 
 // localhost:5454/api/admin/ingredients/food/16
@@ -121,6 +124,25 @@ export const updateMenuItemsAvailability = ({foodId,jwt}) => {
     }
 };
 };
+
+export const updateFoodItem = ({foodId, title, price, jwt}) => {
+  return async (dispatch) => {
+    dispatch({ type: UPDATE_MENU_ITEM_REQUEST });
+    try {
+      const { data } = await api.put(`/api/admin/food/${foodId}`, { name: title, price: price }, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      console.log("Updated menu item:", data);
+      dispatch({ type: UPDATE_MENU_ITEM_SUCCESS, payload: data });
+    } catch (error) {
+      console.log("Update error:", error);
+      dispatch({ type: UPDATE_MENU_ITEM_FAILURE, payload: error });
+    }
+  };
+};
+
 
 export const deleteFoodAction = ({foodId,jwt}) => async (dispatch) => {
   dispatch({ type: DELETE_MENU_ITEM_REQUEST });
